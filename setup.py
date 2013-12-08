@@ -38,6 +38,9 @@ with open('README.rst', 'rt') as f:
 install_requires = [
     # see requirements.txt for versions most recently used in development
 ]
+tests_require = [
+    'pytest',
+]
 
 setup(
     name='raspi_x10',
@@ -50,6 +53,7 @@ setup(
     license='Apache License, Version 2.0',
     classifiers=python_classifiers + other_classifiers,
     platforms=['Linux'],
-    install_requires=install_requires,
     packages=['raspi_x10'],
+    install_requires=install_requires,
+    tests_require=tests_require,
 )

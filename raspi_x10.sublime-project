@@ -5,5 +5,14 @@
 			"follow_symlinks": true,
 			"path": "/Users/doug/Documents/devel/raspi_x10"
 		}
-	]
+	],
+    "build_systems":
+    [
+        {
+            "name": "pytest",
+            "working_dir": "/Users/doug/Documents/devel/raspi_x10",
+            "shell_cmd": "~/.virtualenvs/raspi_x10/bin/py.test",
+            "selector": "source.python"
+        }
+    ]
 }

@@ -47,3 +47,9 @@ The response should be something like:
     Last addressed device =       0x0002 (0000000000010000)
     Status of monitored devices = 0x1044 (1000000000000101)
     Status of dimmed devices =    0xa199 (0111011110000000)
+
+
+Configuration
+=============
+
+Replace the default :program:`heyu` configuration file provided by the install script with a symlink to the :file:`heyu/x10config` file in this repo.

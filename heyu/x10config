@@ -1,0 +1,29 @@
+# x10 configuration file for heyu utility
+
+# See x10config.sample and the x10config(5) man page for more details.
+
+# Serial port to which the CM11A is connected
+TTY  /dev/ttyUSB0
+
+# Base housecode
+HOUSECODE  H
+
+# Aliases:
+# Format:  ALIAS  Label  Housecode|Unitcode_string  [Module_Type]
+#
+# The label is limited to 32 characters in length and is case-sensitive,
+# e.g., Front_Porch and front_porch are treated as different labels.
+# Each alias may reference a single unitcode or a multiple unitcode
+# string (no embedded blanks), but is limited to one housecode.
+#
+# Downstairs:
+## ALIAS Radio             H1 StdAM  # no module
+## ALIAS LivingroomLight   H2 StdWS  # no module
+ALIAS KitchenCtrLight   H3 StdAM
+# Upstairs
+## ALIAS FoyerLight        H4 StdWS  # failed module
+ALIAS UpperHallLight    H5 StdWS
+ALIAS MstrBedroomLight  H6 StdWS
+## ALIAS TVSet             H7 StdAM  # no module
+# Control buttons
+## ALIAS AwayMode          H16 REMOTE2  # failed module

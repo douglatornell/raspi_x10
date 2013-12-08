@@ -2,7 +2,7 @@
 Raspberry Pi X10 Home Automation
 ********************************
 
-X10_ home automation based on a `Raspberry Pi_, heyu_, a `CM11A module`_
+X10_ home automation based on a `Raspberry Pi`_, heyu_, a `CM11A module`_
 and some `Python 3`_ code.
 
 Use ``cron``, the schedule feature of heyu_, and rule sets defined in Python

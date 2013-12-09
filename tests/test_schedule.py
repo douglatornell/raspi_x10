@@ -14,6 +14,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from unittest.mock import (
+    mock_open,
+    patch,
+)
 
 
 def _get_one():
@@ -30,3 +34,17 @@ def test_add_macro():
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     assert 'macro fooOn on A1' in sched.macros
+
+
+def test_write_macros():
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
+    sched._add_macro('foo', 'on')
+    sched._add_macro('foo', 'off')
+    m = mock_open()
+    with patch('raspi_x10.schedule.open', m, create=True):
+        sched.write()
+    handle = m()
+    assert handle.write.called_with('#Macros:\n')
+    assert handle.writelines.called_with(
+        '{}\n'.format(l) for l in sched.macros)

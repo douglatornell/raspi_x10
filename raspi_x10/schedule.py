@@ -19,12 +19,24 @@ limitations under the License.
 class Schedule():
     """Heyu schedule object.
     """
-    def __init__(self):
+    def __init__(self, sched_file='/home/pi/.heyu/x10.sched'):
+        """
+        :arg sched_file: File path and name of the Heyu schedule file to write.
+        :type sched_file: str
+        """
+        self.sched_file = sched_file
         #: Heyu x10.sched file macros that each map a device name and
         #: state string to an X10 command and device code
         self.macros = set()
         #: Heyu x10.sched file timer rule strings
         self.timers = []
+
+    def write(self):
+        """Write the Heyu schedule file.
+        """
+        with open(self.sched_file, 'w') as f:
+            f.write('# Macros:\n')
+            f.writelines(self.macros)
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()

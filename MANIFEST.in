@@ -1,0 +1,2 @@
+include __version__.py
+include LICENSE

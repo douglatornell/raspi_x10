@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import datetime
 try:
     import unittest.mock as mock
 except ImportError:     # Python < 3.3
@@ -27,13 +28,6 @@ def _get_one():
 
 def _make_one():
     return _get_one()()
-
-
-def test_add_macro():
-    sched = _make_one()
-    sched.devices = {'foo': 'A1'}
-    sched._add_macro('foo', 'on')
-    assert 'macro fooOn on A1' in sched.macros
 
 
 def test_write_macros():
@@ -53,3 +47,62 @@ def test_write_macros():
     ]
     for line in expected:
         assert line in args[0]
+
+
+def test_write_timers():
+    sched = _make_one()
+    start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
+    end_date = datetime.date(2013, 12, 15)
+    sched._add_timer('foo', 'on', start_time, end_date)
+    sched._add_timer('foo', 'on', start_time, end_date)
+    m = mock.mock_open()
+    with mock.patch('raspi_x10.schedule.open', m, create=True):
+        sched.write()
+    file_obj = m()
+    assert mock.call('\n# Timers:\n') in file_obj.write.mock_calls
+    expected = [
+        'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null\n',
+        'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null\n',
+    ]
+    name, args, kwargs = file_obj.writelines.mock_calls[1]
+    assert args[0] == expected
+
+
+def test_add_macro():
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
+    sched._add_macro('foo', 'on')
+    assert 'macro fooOn on A1' in sched.macros
+
+
+def test_add_timer_absolute_start_time():
+    sched = _make_one()
+    start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
+    end_date = datetime.date(2013, 12, 15)
+    sched._add_timer('foo', 'on', start_time, end_date)
+    assert 'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null' in sched.timers
+
+
+def test_add_timer_sun_condition():
+    sched = _make_one()
+    start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
+    end_date = datetime.date(2013, 12, 15)
+    sched._add_timer('foo', 'on', start_time, end_date, 'dawngt 05:45')
+    expected = 'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null dawngt 05:45'
+    assert expected in sched.timers
+
+
+def test_add_timer_start_time_after_dawn():
+    sched = _make_one()
+    start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
+    end_date = datetime.date(2013, 12, 15)
+    sched._add_timer('foo', 'on', start_time, end_date)
+    assert 'timer smtwtfs 12/08-12/15 dawn+42 23:59 fooOn null' in sched.timers
+
+
+def test_add_timer_start_time_before_dusk():
+    sched = _make_one()
+    start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
+    end_date = datetime.date(2013, 12, 15)
+    sched._add_timer('foo', 'on', start_time, end_date)
+    assert 'timer smtwtfs 12/08-12/15 dusk-42 23:59 fooOn null' in sched.timers

@@ -38,8 +38,27 @@ class Schedule():
             f.write('# Macros:\n')
             macros = ['{}\n'.format(m) for m in self.macros]
             f.writelines(macros)
+            f.write('\n# Timers:\n')
+            timers = ['{}\n'.format(t) for t in self.timers]
+            f.writelines(timers)
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()
         self.macros.add('macro {} {} {}'
             .format(macro_name, state, self.devices[device]))
+
+    def _add_timer(self, device, state, start_time, end_date,
+                   sun_condition=''):
+        macro_name = device + state.capitalize()
+        try:
+            strt_date = '{:%m/%d}'.format(start_time)
+            strt_time = '{:%H:%M}'.format(start_time)
+        except ValueError:
+            strt_date = '{[0]:%m/%d}'.format(start_time)
+            strt_time = '{0[1]}{0[2]:+d}'.format(start_time)
+        timer = (
+            'timer smtwtfs {0}-{1:%m/%d} {2} 23:59 {3} null'
+            .format(strt_date, end_date, strt_time, macro_name))
+        if sun_condition:
+            timer = ' '.join((timer, sun_condition))
+        self.timers.append(timer)

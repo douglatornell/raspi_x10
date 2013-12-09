@@ -19,13 +19,21 @@ limitations under the License.
 class Schedule():
     """Heyu schedule object.
     """
-    def __init__(self, sched_file='/home/pi/.heyu/x10.sched'):
+    def __init__(
+        self,
+        devices,
+        sched_file='/home/pi/.heyu/x10.sched',
+    ):
         """
+        :arg devices: Mapping of device aliases to X10 device codes
+        :type devices: dict
+
         :arg sched_file: File path and name of the Heyu schedule file to write.
         :type sched_file: str
         """
+        self.devices = devices
         self.sched_file = sched_file
-        #: Heyu x10.sched file macros that each map a device name and
+        #: Heyu x10.sched file macros that each map a device alias and
         #: state string to an X10 command and device code
         self.macros = set()
         #: Heyu x10.sched file timer rule strings

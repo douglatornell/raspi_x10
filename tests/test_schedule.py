@@ -26,13 +26,13 @@ def _get_one():
     return Schedule
 
 
-def _make_one():
-    return _get_one()()
+def _make_one(args, *kwargs):
+    return _get_one()(args, kwargs)
 
 
 def test_write_macros():
-    sched = _make_one()
-    sched.devices = {'foo': 'A1'}
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     sched._add_macro('foo', 'on')
     sched._add_macro('foo', 'off')
     m = mock.mock_open()
@@ -50,7 +50,8 @@ def test_write_macros():
 
 
 def test_write_timers():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -69,14 +70,16 @@ def test_write_timers():
 
 
 def test_add_macro():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     assert 'macro fooOn on A1' in sched.macros
 
 
 def test_add_timer_absolute_start_time():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -84,7 +87,8 @@ def test_add_timer_absolute_start_time():
 
 
 def test_add_timer_sun_condition():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date, 'dawngt 05:45')
@@ -93,7 +97,8 @@ def test_add_timer_sun_condition():
 
 
 def test_add_timer_start_time_after_dawn():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -101,7 +106,8 @@ def test_add_timer_start_time_after_dawn():
 
 
 def test_add_timer_start_time_before_dusk():
-    sched = _make_one()
+    devices = {'foo': 'A1'}
+    sched = _make_one(devices)
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)

@@ -15,15 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 try:
-    from unittest.mock import (
-        mock_open,
-        patch,
-    )
+    import unittest.mock as mock
 except ImportError:     # Python < 3.3
-    from mock import (
-        mock_open,
-        patch,
-    )
+    import mock
 
 
 def _get_one():
@@ -47,10 +41,15 @@ def test_write_macros():
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     sched._add_macro('foo', 'off')
-    m = mock_open()
-    with patch('raspi_x10.schedule.open', m, create=True):
+    m = mock.mock_open()
+    with mock.patch('raspi_x10.schedule.open', m, create=True):
         sched.write()
-    handle = m()
-    assert handle.write.called_with('#Macros:\n')
-    assert handle.writelines.called_with(
-        '{}\n'.format(l) for l in sched.macros)
+    file_obj = m()
+    assert mock.call('# Macros:\n') in file_obj.write.mock_calls
+    name, args, kwargs = file_obj.writelines.mock_calls[0]
+    expected = [
+        'macro fooOn on A1\n',
+        'macro fooOff off A1\n',
+    ]
+    for line in expected:
+        assert line in args[0]

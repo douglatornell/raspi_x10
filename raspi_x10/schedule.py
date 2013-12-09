@@ -36,7 +36,8 @@ class Schedule():
         """
         with open(self.sched_file, 'w') as f:
             f.write('# Macros:\n')
-            f.writelines(self.macros)
+            macros = ['{}\n'.format(m) for m in self.macros]
+            f.writelines(macros)
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()

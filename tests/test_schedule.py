@@ -17,8 +17,8 @@ limitations under the License.
 import datetime
 try:
     import unittest.mock as mock
-except ImportError:     # Python < 3.3
-    import mock
+except ImportError:     # pragma: no cover; reqd for Python < 3.3
+    import mock         # pragma: no cover; reqd for Python < 3.3
 
 
 def _get_one():

@@ -39,6 +39,7 @@ install_requires = [
     # see requirements.txt for versions most recently used in development
 ]
 tests_require = [
+    'coverage',
     'pytest',
     'tox',
 ]

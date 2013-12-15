@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import datetime
+import pytest
 try:
     import unittest.mock as mock
 except ImportError:     # pragma: no cover; reqd for Python < 3.3
@@ -26,13 +27,43 @@ def _get_one():
     return Schedule
 
 
-def _make_one(args, *kwargs):
-    return _get_one()(args, kwargs)
+def _make_one(*kwargs):
+    return _get_one()(kwargs)
+
+
+def test_load_devices():
+    sched = _make_one()
+    sched._load_conf = mock.Mock(name='_load_conf')
+    sched.load_devices('heyu/x10_devices.py')
+    sched._load_conf.assert_called_once_with(
+        'heyu/x10_devices.py', 'x10_devices')
+
+
+def test_load_conf_bad_filepath():
+    sched = _make_one()
+    with pytest.raises(IOError):
+        sched._load_conf('foo', 'bar')
+
+
+def test_load_conf():
+    sched = _make_one()
+    mock_conf_file = mock.mock_open(read_data='bar = 42')
+    with mock.patch('raspi_x10.schedule.open', mock_conf_file, create=True):
+        result = sched._load_conf('foo', 'bar')
+    assert result == 42
+
+
+def test_load_conf_bad_conf_var_name():
+    sched = _make_one()
+    mock_conf = mock.mock_open(read_data='bar = 42')
+    with pytest.raises(KeyError):
+        with mock.patch('raspi_x10.schedule.open', mock_conf, create=True):
+            sched._load_conf('foo', 'baz')
 
 
 def test_write_macros():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     sched._add_macro('foo', 'off')
     m = mock.mock_open()
@@ -50,8 +81,8 @@ def test_write_macros():
 
 
 def test_write_timers():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -70,16 +101,16 @@ def test_write_timers():
 
 
 def test_add_macro():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     assert 'macro fooOn on A1' in sched.macros
 
 
 def test_add_timer_absolute_start_time():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -87,8 +118,8 @@ def test_add_timer_absolute_start_time():
 
 
 def test_add_timer_sun_condition():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date, 'dawngt 05:45')
@@ -97,8 +128,8 @@ def test_add_timer_sun_condition():
 
 
 def test_add_timer_start_time_after_dawn():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)
@@ -106,8 +137,8 @@ def test_add_timer_start_time_after_dawn():
 
 
 def test_add_timer_start_time_before_dusk():
-    devices = {'foo': 'A1'}
-    sched = _make_one(devices)
+    sched = _make_one()
+    sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
     end_date = datetime.date(2013, 12, 15)
     sched._add_timer('foo', 'on', start_time, end_date)

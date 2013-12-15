@@ -39,6 +39,22 @@ def test_load_devices():
         'heyu/x10_devices.py', 'x10_devices')
 
 
+def test_load_rules():
+    sched = _make_one()
+    sched._load_conf = mock.Mock(name='_load_conf')
+    sched.load_rules('heyu/people_home_rules.py')
+    sched._load_conf.assert_called_once_with(
+        'heyu/people_home_rules.py', 'x10_rules')
+
+
+def test_load_special_dates():
+    sched = _make_one()
+    sched._load_conf = mock.Mock(name='_load_conf')
+    sched.load_special_dates('heyu/special_dates.py')
+    sched._load_conf.assert_called_once_with(
+        'heyu/special_dates.py', 'special_dates')
+
+
 def test_load_conf_bad_filepath():
     sched = _make_one()
     with pytest.raises(IOError):

@@ -42,6 +42,10 @@ class Schedule():
         self.sched_file = sched_file
         #: Mapping of device aliases to X10 device codes
         self.devices = {}
+        #: Schedule rules data structure
+        self.rules = {}
+        #: Mapping of special dates to mnemonics
+        self.special_dates = {}
         #: Heyu x10.sched file macros that each map a device alias and
         #: state string to an X10 command and device code
         self.macros = set()
@@ -59,6 +63,31 @@ class Schedule():
         :type conf_var: str
         """
         self.devices = self._load_conf(devices_file, conf_var)
+
+    def load_rules(self, rules_file, conf_var='x10_rules'):
+        """Load heyu schedule rules data structure from config file.
+
+        :arg rules_file: Path and file name of rules config file.
+        :type rules_file: str
+
+        :arg conf_var: Variable name of schedule rules data structure in
+                       config file; defaults to :py:obj:`x10_rules`.
+        :type conf_var: str
+        """
+        self.rules = self._load_conf(rules_file, conf_var)
+
+    def load_special_dates(self, special_dates_file, conf_var='special_dates'):
+        """Load special dates data structure from config file.
+
+        :arg special_dates_file: Path and file name of special dates
+                                 config file.
+        :type special_dates_file: str
+
+        :arg conf_var: Variable name of special dates data structure in
+                       config file; defaults to :py:obj:`special_dates`.
+        :type conf_var: str
+        """
+        self.special_dates = self._load_conf(special_dates_file, conf_var)
 
     def write(self):
         """Write the Heyu schedule file.
@@ -110,11 +139,15 @@ class Schedule():
 
 
 if __name__ == '__main__':
-    devices_file, = sys.argv[1:]
+    devices_file, rules_file, special_dates_file = sys.argv[1:]
     sched = Schedule()
     try:
         sched.load_devices(devices_file)
+        sched.load_rules(rules_file)
+        sched.load_special_dates(special_dates_file)
     except (IOError, KeyError):
         sys.exit(2)
     import pprint
     pprint.pprint(sched.devices)
+    pprint.pprint(sched.rules)
+    pprint.pprint(sched.special_dates)

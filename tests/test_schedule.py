@@ -31,42 +31,18 @@ def _make_one():
     return _get_one()()
 
 
-def test_load_devices():
-    sched = _make_one()
-    sched._load_conf = mock.Mock(name='_load_conf')
-    sched.load_devices('heyu/x10_devices.py')
-    sched._load_conf.assert_called_once_with(
-        'heyu/x10_devices.py', 'x10_devices')
-
-
-def test_load_rules():
-    sched = _make_one()
-    sched._load_conf = mock.Mock(name='_load_conf')
-    sched.load_rules('heyu/people_home_rules.py')
-    sched._load_conf.assert_called_once_with(
-        'heyu/people_home_rules.py', 'x10_rules')
-
-
-def test_load_special_days():
-    sched = _make_one()
-    sched._load_conf = mock.Mock(name='_load_conf')
-    sched.load_special_days('heyu/special_days.py')
-    sched._load_conf.assert_called_once_with(
-        'heyu/special_days.py', 'special_days')
-
-
 def test_load_conf_bad_filepath():
     sched = _make_one()
     with pytest.raises(IOError):
-        sched._load_conf('foo', 'bar')
+        sched.load_conf('foo', 'bar', 'baz')
 
 
 def test_load_conf():
     sched = _make_one()
     mock_conf_file = mock.mock_open(read_data='bar = 42')
     with mock.patch('raspi_x10.schedule.open', mock_conf_file, create=True):
-        result = sched._load_conf('foo', 'bar')
-    assert result == 42
+        sched.load_conf('foo', 'bar', 'baz')
+    assert sched.baz == 42
 
 
 def test_load_conf_bad_conf_var_name():
@@ -74,7 +50,7 @@ def test_load_conf_bad_conf_var_name():
     mock_conf = mock.mock_open(read_data='bar = 42')
     with pytest.raises(KeyError):
         with mock.patch('raspi_x10.schedule.open', mock_conf, create=True):
-            sched._load_conf('foo', 'baz')
+            sched.load_conf('foo', 'far', 'baz')
 
 
 def test_write_macros():

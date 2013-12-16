@@ -53,42 +53,32 @@ class Schedule():
         #: Heyu x10.sched file timer rule strings
         self.timers = []
 
-    def load_devices(self, devices_file, conf_var='x10_devices'):
-        """Load X10 devices data structure from devices config file.
+    def load_conf(self, filepath, conf_var, attr):
+        """Load data structure from config file into attr.
 
-        :arg devices_file: Path and file name of X10 devices config file.
-        :type devices_file: str
+        :arg filepath: Path and file name of config file.
+        :type filepath: str
 
-        :arg conf_var: Variable name of X10 devices data structure in
-                       config file; defaults to :py:obj:`x10_devices`.
+        :arg conf_var: Variable name of data structure in config file.
+        :type conf_var: str
+
+        :arg attr: Attribute name to assign data structure to.
         :type conf_var: str
         """
-        self.devices = self._load_conf(devices_file, conf_var)
-
-    def load_rules(self, rules_file, conf_var='x10_rules'):
-        """Load heyu schedule rules data structure from config file.
-
-        :arg rules_file: Path and file name of rules config file.
-        :type rules_file: str
-
-        :arg conf_var: Variable name of schedule rules data structure in
-                       config file; defaults to :py:obj:`x10_rules`.
-        :type conf_var: str
-        """
-        self.rules = self._load_conf(rules_file, conf_var)
-
-    def load_special_days(self, special_days_file, conf_var='special_days'):
-        """Load special dates data structure from config file.
-
-        :arg special_dates_file: Path and file name of special dates
-                                 config file.
-        :type special_dates_file: str
-
-        :arg conf_var: Variable name of special dates data structure in
-                       config file; defaults to :py:obj:`special_dates`.
-        :type conf_var: str
-        """
-        self.special_days = self._load_conf(special_days_file, conf_var)
+        try:
+            with open(filepath, 'rt') as f:
+                source = f.read()
+        except IOError:
+            log.error('config file not found: {}'.format(filepath))
+            raise
+        code = compile(source, filepath, 'exec')
+        exec(code)
+        try:
+            setattr(self, attr, locals()[conf_var])
+        except KeyError:
+            log.error('config variable not found in {}: {}'
+                      .format(filepath, conf_var))
+            raise
 
     def write(self):
         """Write the Heyu schedule file.
@@ -100,22 +90,6 @@ class Schedule():
             f.write('\n# Timers:\n')
             timers = ['{}\n'.format(t) for t in self.timers]
             f.writelines(timers)
-
-    def _load_conf(self, filepath, conf_var):
-        try:
-            with open(filepath, 'rt') as f:
-                source = f.read()
-        except IOError:
-            log.error('config file not found: {}'.format(filepath))
-            raise
-        code = compile(source, filepath, 'exec')
-        exec(code)
-        try:
-            return locals()[conf_var]
-        except KeyError:
-            log.error('config variable not found in {}: {}'
-                      .format(filepath, conf_var))
-            raise
 
     def _is_special_day(self):
         today = datetime.date.today()
@@ -150,12 +124,12 @@ class Schedule():
 
 
 if __name__ == '__main__':
-    devices_file, rules_file, special_dates_file = sys.argv[1:]
+    devices_file, rules_file, special_days_file = sys.argv[1:]
     sched = Schedule()
     try:
-        sched.load_devices(devices_file)
-        sched.load_rules(rules_file)
-        sched.load_special_dates(special_dates_file)
+        sched.load_conf(devices_file, 'x10_devices', 'devices')
+        sched.load_conf(rules_file, 'x10_rules', 'rules')
+        sched.load_conf(special_days_file, 'special_days', 'special_days')
     except (IOError, KeyError):
         sys.exit(2)
     import pprint

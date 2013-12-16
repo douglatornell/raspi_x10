@@ -127,8 +127,9 @@ class Schedule():
             offset += random.randint(-fuzz, fuzz)
             start_time = time, offset
         else:
-            # absolute time condition
-            pass
+            # Conditional from specific time rather than dawn or dusk
+            parts = list(map(int, time.split(':')))
+            start_time = self._calc_fuzzy_time(fuzz, *parts, offset=offset)
         return start_time, sun_condition
 
     def _add_macro(self, device, state):
@@ -136,8 +137,9 @@ class Schedule():
         self.macros.add('macro {} {} {}'
             .format(macro_name, state, self.devices[device]))
 
-    def _calc_fuzzy_time(self, fuzz, hour, minute):
+    def _calc_fuzzy_time(self, fuzz, hour, minute, offset=0):
         fuzzy_time = self.today.replace(hour=hour, minute=minute)
+        fuzzy_time += datetime.timedelta(minutes=offset)
         fuzz = datetime.timedelta(minutes=random.randint(-fuzz, fuzz))
         fuzzy_time += fuzz
         return fuzzy_time

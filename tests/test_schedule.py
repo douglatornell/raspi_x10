@@ -169,12 +169,28 @@ def test_handle_absolute_time_event_conditional_time():
     sched = _make_one()
     sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'UpperHallLight': 'A1'}
-    event = ('UpperHallLight', 'off', ('dawn', 60, 'dawngt 05:45'), 0)
+    sched._handle_conditional_time = mock.Mock(
+        return_value=(('dawn', 60), 'dawngt 05:45'))
+    event = ('UpperHallLight', 'off', ('dawn', 60, 'dawngt 05:45'), 10)
     sched._handle_absolute_time_event(event)
-    expected = (
-        'timer smtwtfs 12/15-12/22 dawn+60 23:59 UpperHallLightOff null '
-        'dawngt 05:45')
-    assert expected in sched.timers
+    sched._handle_conditional_time.assert_called_once_with(
+        ('dawn', 60, 'dawngt 05:45'), 10)
+
+
+def test_handle_conditional_time_dawn():
+    sched = _make_one()
+    start_time, sun_condition = sched._handle_conditional_time(
+        ('dawn', 60, 'dawngt 05:45'), 0)
+    assert (start_time, sun_condition) == (('dawn', 60), 'dawngt 05:45')
+
+
+def test_handle_conditional_time_specific_time():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 16)
+    start_time, sun_condition = sched._handle_conditional_time(
+        ('06:30', 0, 'dawngt 05:45'), 0)
+    expected = (datetime.datetime(2013, 12, 16, 6, 30), 'dawngt 05:45')
+    assert (start_time, sun_condition) == expected
 
 
 def test_add_macro():
@@ -202,6 +218,13 @@ def test_calc_fuzzy_time():
         fuzzy_time <= datetime.datetime(2013, 12, 15, 20, 5)
     )
     assert expected
+
+
+def test_calc_fuzzy_time_with_offset():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 16)
+    fuzzy_time = sched._calc_fuzzy_time(0, 8, 52, offset=15)
+    assert fuzzy_time == datetime.datetime(2013, 12, 16, 9, 7)
 
 
 def test_add_timer_absolute_start_time():

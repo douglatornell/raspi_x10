@@ -98,34 +98,52 @@ def test_is_special_day_no_special_days():
     assert day is None
 
 
-@mock.patch('raspi_x10.schedule.datetime')
-def test_is_special_day_year_day_not_today(mock_datetime):
+def test_is_special_day_year_day_not_today():
     sched = _make_one()
+    sched.today = datetime.date(2013, 12, 15)
     sched.special_days = {'EasterSunday': ['2014-04-20']}
-    mock_datetime.date.today.return_value = datetime.date(2013, 12, 15)
-    mock_datetime.date.side_effect = datetime.date
     day = sched._is_special_day()
     assert day is None
 
 
-@mock.patch('raspi_x10.schedule.datetime')
-def test_is_special_day_annual_day_not_today(mock_datetime):
+def test_is_special_day_annual_day_not_today():
     sched = _make_one()
+    sched.today = datetime.date(2013, 12, 15)
     sched.special_days = {'NewYears': ['01-01']}
-    mock_datetime.date.today.return_value = datetime.date(2013, 12, 15)
-    mock_datetime.date.side_effect = datetime.date
     day = sched._is_special_day()
     assert day is None
 
 
-@mock.patch('raspi_x10.schedule.datetime')
-def test_is_special_day_today(mock_datetime):
+def test_is_special_day_today():
     sched = _make_one()
+    sched.today = datetime.date(2014, 1, 1)
     sched.special_days = {'NewYears': ['01-01']}
-    mock_datetime.date.today.return_value = datetime.date(2014, 1, 1)
-    mock_datetime.date.side_effect = datetime.date
     day = sched._is_special_day()
     assert day == 'NewYears'
+
+
+def test_choose_rules_group_day_None():
+    sched = _make_one()
+    sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
+    sched.rules['Sun'] = [['foo']]
+    sched._choose_rules_group(None)
+    assert sched._rules_group == ['foo']
+
+
+def test_choose_rules_group_special_day_not_in_rules():
+    sched = _make_one()
+    sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
+    sched.rules['Sun'] = [['foo']]
+    sched._choose_rules_group('NewYears')
+    assert sched._rules_group == ['foo']
+
+
+def test_choose_rules_group_special_day_in_rules():
+    sched = _make_one()
+    sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
+    sched.rules['NewYears'] = [['foo']]
+    sched._choose_rules_group('NewYears')
+    assert sched._rules_group == ['foo']
 
 
 def test_add_macro():

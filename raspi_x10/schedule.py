@@ -16,6 +16,7 @@ limitations under the License.
 """
 import datetime
 import logging
+import random
 import sys
 
 
@@ -45,6 +46,8 @@ class Schedule():
         self.devices = {}
         #: Schedule rules data structure
         self.rules = {}
+        #: List of schedule rules choosen to build today's schedule from
+        self._rules_group = []
         #: Mapping of special day mnemonics to date lists
         self.special_days = {}
         #: Heyu x10.sched file macros that each map a device alias and
@@ -52,6 +55,7 @@ class Schedule():
         self.macros = set()
         #: Heyu x10.sched file timer rule strings
         self.timers = []
+        self.today = datetime.date.today()
 
     def load_conf(self, filepath, conf_var, attr):
         """Load data structure from config file into attr.
@@ -92,14 +96,18 @@ class Schedule():
             f.writelines(timers)
 
     def _is_special_day(self):
-        today = datetime.date.today()
         for day in self.special_days:
             for date_str in self.special_days[day]:
                 parts = list(map(int, date_str.split('-')))
                 if len(parts) == 2:
-                    parts.insert(0, today.year)
-                if datetime.date(*parts) == today:
+                    parts.insert(0, self.today.year)
+                if datetime.date(*parts) == self.today:
                     return day
+
+    def _choose_rules_group(self, day):
+        if day is None or day not in self.rules:
+            day = 'Mon Tue Wed Thu Fri Sat Sun'.split()[self.today.weekday()]
+        self._rules_group = random.choice(self.rules[day])
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()
@@ -132,7 +140,11 @@ if __name__ == '__main__':
         sched.load_conf(special_days_file, 'special_days', 'special_days')
     except (IOError, KeyError):
         sys.exit(2)
+    day = sched._is_special_day()
+    sched._choose_rules_group(day)
+
     import pprint
     pprint.pprint(sched.devices)
     pprint.pprint(sched.rules)
     pprint.pprint(sched.special_days)
+    pprint.pprint(sched._rules_group)

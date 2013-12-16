@@ -163,11 +163,11 @@ def test_calc_fuzzy_time_no_fuzz():
 def test_calc_fuzzy_time():
     sched = _make_one()
     sched.today = datetime.datetime(2013, 12, 15)
-    fuzzy_time = sched._calc_fuzzy_time(5, 20, 38)
+    fuzzy_time = sched._calc_fuzzy_time(5, 20, 0)
     expected = (
-        fuzzy_time >= datetime.datetime(2013, 12, 15, 20, 33)
+        fuzzy_time >= datetime.datetime(2013, 12, 15, 19, 55)
         and
-        fuzzy_time <= datetime.datetime(2013, 12, 15, 20, 43)
+        fuzzy_time <= datetime.datetime(2013, 12, 15, 20, 5)
     )
     assert expected
 

@@ -109,6 +109,17 @@ class Schedule():
             day = 'Mon Tue Wed Thu Fri Sat Sun'.split()[self.today.weekday()]
         self._rules_group = random.choice(self.rules[day])
 
+    def _handle_absolute_time_event(self, event):
+        device, state, time, fuzz = event
+        self._add_macro(device, state)
+        try:
+            parts = list(map(int, time.split(':')))
+        except AttributeError:
+            # dawn/dusk time event
+            pass
+        start_time = self._calc_fuzzy_time(fuzz, *parts)
+        self._add_timer(device, state, start_time)
+
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()
         self.macros.add('macro {} {} {}'

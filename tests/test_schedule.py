@@ -145,6 +145,23 @@ def test_choose_rules_group_special_day_in_rules():
     assert sched._rules_group == ['foo']
 
 
+def test_handle_absolute_time_event_adds_macro():
+    sched = _make_one()
+    sched.devices = {'MstrBedroomLight': 'A1'}
+    event = ('MstrBedroomLight', 'off', '07:45', 10)
+    sched._handle_absolute_time_event(event)
+    assert 'macro MstrBedroomLightOff off A1' in sched.macros
+
+
+def test_handle_absolute_time_event_adds_timer():
+    sched = _make_one()
+    sched.devices = {'MstrBedroomLight': 'A1'}
+    event = ('MstrBedroomLight', 'off', '07:45', 0)
+    sched._handle_absolute_time_event(event)
+    expected = 'timer smtwtfs 12/15-12/22 07:45 23:59 MstrBedroomLightOff null'
+    assert expected in sched.timers
+
+
 def test_add_macro():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}

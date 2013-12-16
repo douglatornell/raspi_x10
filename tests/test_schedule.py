@@ -153,6 +153,25 @@ def test_add_macro():
     assert 'macro fooOn on A1' in sched.macros
 
 
+def test_calc_fuzzy_time_no_fuzz():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 15)
+    fuzzy_time = sched._calc_fuzzy_time(0, 20, 38)
+    assert fuzzy_time == datetime.datetime(2013, 12, 15, 20, 38)
+
+
+def test_calc_fuzzy_time():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 15)
+    fuzzy_time = sched._calc_fuzzy_time(5, 20, 38)
+    expected = (
+        fuzzy_time >= datetime.datetime(2013, 12, 15, 20, 33)
+        and
+        fuzzy_time <= datetime.datetime(2013, 12, 15, 20, 43)
+    )
+    assert expected
+
+
 def test_add_timer_absolute_start_time():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}

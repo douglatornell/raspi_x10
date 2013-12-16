@@ -55,7 +55,7 @@ class Schedule():
         self.macros = set()
         #: Heyu x10.sched file timer rule strings
         self.timers = []
-        self.today = datetime.date.today()
+        self.today = datetime.datetime.today()
 
     def load_conf(self, filepath, conf_var, attr):
         """Load data structure from config file into attr.
@@ -113,6 +113,12 @@ class Schedule():
         macro_name = device + state.capitalize()
         self.macros.add('macro {} {} {}'
             .format(macro_name, state, self.devices[device]))
+
+    def _calc_fuzzy_time(self, fuzz, hour, minute):
+        fuzzy_time = self.today.replace(hour=hour, minute=minute)
+        fuzz = datetime.timedelta(minutes=random.randint(-fuzz, fuzz))
+        fuzzy_time += fuzz
+        return fuzzy_time
 
     def _add_timer(self, device, state, start_time, sun_condition=''):
         macro_name = device + state.capitalize()

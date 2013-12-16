@@ -76,9 +76,8 @@ def test_write_timers():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
-    end_date = datetime.date(2013, 12, 15)
-    sched._add_timer('foo', 'on', start_time, end_date)
-    sched._add_timer('foo', 'on', start_time, end_date)
+    sched._add_timer('foo', 'on', start_time)
+    sched._add_timer('foo', 'on', start_time)
     m = mock.mock_open()
     with mock.patch('raspi_x10.schedule.open', m, create=True):
         sched.write()
@@ -158,8 +157,7 @@ def test_add_timer_absolute_start_time():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
-    end_date = datetime.date(2013, 12, 15)
-    sched._add_timer('foo', 'on', start_time, end_date)
+    sched._add_timer('foo', 'on', start_time)
     assert 'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null' in sched.timers
 
 
@@ -167,8 +165,7 @@ def test_add_timer_sun_condition():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
-    end_date = datetime.date(2013, 12, 15)
-    sched._add_timer('foo', 'on', start_time, end_date, 'dawngt 05:45')
+    sched._add_timer('foo', 'on', start_time, 'dawngt 05:45')
     expected = 'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null dawngt 05:45'
     assert expected in sched.timers
 
@@ -177,8 +174,7 @@ def test_add_timer_start_time_after_dawn():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
-    end_date = datetime.date(2013, 12, 15)
-    sched._add_timer('foo', 'on', start_time, end_date)
+    sched._add_timer('foo', 'on', start_time)
     assert 'timer smtwtfs 12/08-12/15 dawn+42 23:59 fooOn null' in sched.timers
 
 
@@ -186,6 +182,5 @@ def test_add_timer_start_time_before_dusk():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
-    end_date = datetime.date(2013, 12, 15)
-    sched._add_timer('foo', 'on', start_time, end_date)
+    sched._add_timer('foo', 'on', start_time)
     assert 'timer smtwtfs 12/08-12/15 dusk-42 23:59 fooOn null' in sched.timers

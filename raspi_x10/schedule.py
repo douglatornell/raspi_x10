@@ -114,11 +114,22 @@ class Schedule():
         self._add_macro(device, state)
         try:
             parts = list(map(int, time.split(':')))
+            start_time = self._calc_fuzzy_time(fuzz, *parts)
+            sun_condition = ''
         except AttributeError:
-            # dawn/dusk time event
+            start_time, sun_condition = self._handle_conditional_time(
+                time, fuzz)
+        self._add_timer(device, state, start_time, sun_condition)
+
+    def _handle_conditional_time(self, time_condition, fuzz):
+        time, offset, sun_condition = time_condition
+        if time.lower() in 'dawn dusk'.split():
+            offset += random.randint(-fuzz, fuzz)
+            start_time = time, offset
+        else:
+            # absolute time condition
             pass
-        start_time = self._calc_fuzzy_time(fuzz, *parts)
-        self._add_timer(device, state, start_time)
+        return start_time, sun_condition
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()
@@ -133,17 +144,18 @@ class Schedule():
 
     def _add_timer(self, device, state, start_time, sun_condition=''):
         macro_name = device + state.capitalize()
+        strt_date = self.today
+        end_date = self.today + datetime.timedelta(days=7)
         try:
-            strt_date = '{:%m/%d}'.format(start_time)
             strt_time = '{:%H:%M}'.format(start_time)
-            end_time = start_time + datetime.timedelta(days=7)
         except ValueError:
-            strt_date = '{[0]:%m/%d}'.format(start_time)
-            strt_time = '{0[1]}{0[2]:+d}'.format(start_time)
-            end_time = start_time[0] + datetime.timedelta(days=7)
+            try:
+                strt_time = '{0[1]}{0[2]:+d}'.format(start_time)
+            except IndexError:
+                strt_time = '{0[0]}{0[1]:+d}'.format(start_time)
         timer = (
-            'timer smtwtfs {0}-{1:%m/%d} {2} 23:59 {3} null'
-            .format(strt_date, end_time, strt_time, macro_name))
+            'timer smtwtfs {0:%m/%d}-{1:%m/%d} {2} 23:59 {3} null'
+            .format(strt_date, end_date, strt_time, macro_name))
         if sun_condition:
             timer = ' '.join((timer, sun_condition))
         self.timers.append(timer)

@@ -74,6 +74,7 @@ def test_write_macros():
 
 def test_write_timers():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     sched._add_timer('foo', 'on', start_time)
@@ -147,6 +148,7 @@ def test_choose_rules_group_special_day_in_rules():
 
 def test_handle_absolute_time_event_adds_macro():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'MstrBedroomLight': 'A1'}
     event = ('MstrBedroomLight', 'off', '07:45', 10)
     sched._handle_absolute_time_event(event)
@@ -155,10 +157,23 @@ def test_handle_absolute_time_event_adds_macro():
 
 def test_handle_absolute_time_event_adds_timer():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'MstrBedroomLight': 'A1'}
     event = ('MstrBedroomLight', 'off', '07:45', 0)
     sched._handle_absolute_time_event(event)
     expected = 'timer smtwtfs 12/15-12/22 07:45 23:59 MstrBedroomLightOff null'
+    assert expected in sched.timers
+
+
+def test_handle_absolute_time_event_conditional_time():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 15)
+    sched.devices = {'UpperHallLight': 'A1'}
+    event = ('UpperHallLight', 'off', ('dawn', 60, 'dawngt 05:45'), 0)
+    sched._handle_absolute_time_event(event)
+    expected = (
+        'timer smtwtfs 12/15-12/22 dawn+60 23:59 UpperHallLightOff null '
+        'dawngt 05:45')
     assert expected in sched.timers
 
 
@@ -191,6 +206,7 @@ def test_calc_fuzzy_time():
 
 def test_add_timer_absolute_start_time():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     sched._add_timer('foo', 'on', start_time)
@@ -199,6 +215,7 @@ def test_add_timer_absolute_start_time():
 
 def test_add_timer_sun_condition():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
     sched._add_timer('foo', 'on', start_time, 'dawngt 05:45')
@@ -208,6 +225,7 @@ def test_add_timer_sun_condition():
 
 def test_add_timer_start_time_after_dawn():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
     sched._add_timer('foo', 'on', start_time)
@@ -216,6 +234,7 @@ def test_add_timer_start_time_after_dawn():
 
 def test_add_timer_start_time_before_dusk():
     sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
     sched._add_timer('foo', 'on', start_time)

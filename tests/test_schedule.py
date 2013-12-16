@@ -27,8 +27,8 @@ def _get_one():
     return Schedule
 
 
-def _make_one(*kwargs):
-    return _get_one()(kwargs)
+def _make_one():
+    return _get_one()()
 
 
 def test_load_devices():
@@ -47,12 +47,12 @@ def test_load_rules():
         'heyu/people_home_rules.py', 'x10_rules')
 
 
-def test_load_special_dates():
+def test_load_special_days():
     sched = _make_one()
     sched._load_conf = mock.Mock(name='_load_conf')
-    sched.load_special_dates('heyu/special_dates.py')
+    sched.load_special_days('heyu/special_days.py')
     sched._load_conf.assert_called_once_with(
-        'heyu/special_dates.py', 'special_dates')
+        'heyu/special_days.py', 'special_days')
 
 
 def test_load_conf_bad_filepath():
@@ -114,6 +114,42 @@ def test_write_timers():
     ]
     name, args, kwargs = file_obj.writelines.mock_calls[1]
     assert args[0] == expected
+
+
+def test_is_special_day_no_special_days():
+    sched = _make_one()
+    day = sched._is_special_day()
+    assert day is None
+
+
+@mock.patch('raspi_x10.schedule.datetime')
+def test_is_special_day_year_day_not_today(mock_datetime):
+    sched = _make_one()
+    sched.special_days = {'EasterSunday': ['2014-04-20']}
+    mock_datetime.date.today.return_value = datetime.date(2013, 12, 15)
+    mock_datetime.date.side_effect = datetime.date
+    day = sched._is_special_day()
+    assert day is None
+
+
+@mock.patch('raspi_x10.schedule.datetime')
+def test_is_special_day_annual_day_not_today(mock_datetime):
+    sched = _make_one()
+    sched.special_days = {'NewYears': ['01-01']}
+    mock_datetime.date.today.return_value = datetime.date(2013, 12, 15)
+    mock_datetime.date.side_effect = datetime.date
+    day = sched._is_special_day()
+    assert day is None
+
+
+@mock.patch('raspi_x10.schedule.datetime')
+def test_is_special_day_today(mock_datetime):
+    sched = _make_one()
+    sched.special_days = {'NewYears': ['01-01']}
+    mock_datetime.date.today.return_value = datetime.date(2014, 1, 1)
+    mock_datetime.date.side_effect = datetime.date
+    day = sched._is_special_day()
+    assert day == 'NewYears'
 
 
 def test_add_macro():

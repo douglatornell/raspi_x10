@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import datetime
 import logging
 import sys
 
@@ -44,8 +45,8 @@ class Schedule():
         self.devices = {}
         #: Schedule rules data structure
         self.rules = {}
-        #: Mapping of special dates to mnemonics
-        self.special_dates = {}
+        #: Mapping of special day mnemonics to date lists
+        self.special_days = {}
         #: Heyu x10.sched file macros that each map a device alias and
         #: state string to an X10 command and device code
         self.macros = set()
@@ -76,7 +77,7 @@ class Schedule():
         """
         self.rules = self._load_conf(rules_file, conf_var)
 
-    def load_special_dates(self, special_dates_file, conf_var='special_dates'):
+    def load_special_days(self, special_days_file, conf_var='special_days'):
         """Load special dates data structure from config file.
 
         :arg special_dates_file: Path and file name of special dates
@@ -87,7 +88,7 @@ class Schedule():
                        config file; defaults to :py:obj:`special_dates`.
         :type conf_var: str
         """
-        self.special_dates = self._load_conf(special_dates_file, conf_var)
+        self.special_days = self._load_conf(special_days_file, conf_var)
 
     def write(self):
         """Write the Heyu schedule file.
@@ -115,6 +116,16 @@ class Schedule():
             log.error('config variable not found in {}: {}'
                       .format(filepath, conf_var))
             raise
+
+    def _is_special_day(self):
+        today = datetime.date.today()
+        for day in self.special_days:
+            for date_str in self.special_days[day]:
+                parts = list(map(int, date_str.split('-')))
+                if len(parts) == 2:
+                    parts.insert(0, today.year)
+                if datetime.date(*parts) == today:
+                    return day
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()
@@ -150,4 +161,4 @@ if __name__ == '__main__':
     import pprint
     pprint.pprint(sched.devices)
     pprint.pprint(sched.rules)
-    pprint.pprint(sched.special_dates)
+    pprint.pprint(sched.special_days)

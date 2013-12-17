@@ -84,6 +84,17 @@ class Schedule():
                       .format(filepath, conf_var))
             raise
 
+    def build(self):
+        """Build the set of macros and list of timers for the Heyu schedule.
+        """
+        day = self._is_special_day()
+        self._choose_rules_group(day)
+        for group in self._rules_group:
+            absolute_time = self._handle_absolute_time_event(group[0])
+            for event in group[1:]:
+                # handle relative time events
+                pass
+
     def write(self):
         """Write the Heyu schedule file.
         """
@@ -173,10 +184,11 @@ if __name__ == '__main__':
         sched.load_conf(special_days_file, 'special_days', 'special_days')
     except (IOError, KeyError):
         sys.exit(2)
-    day = sched._is_special_day()
-    sched._choose_rules_group(day)
+    sched.build()
     import pprint
     pprint.pprint(sched.devices)
     pprint.pprint(sched.rules)
     pprint.pprint(sched.special_days)
     pprint.pprint(sched._rules_group)
+    pprint.pprint(sched.macros)
+    pprint.pprint(sched.timers)

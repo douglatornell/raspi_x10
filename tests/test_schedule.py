@@ -53,6 +53,16 @@ def test_load_conf_bad_conf_var_name():
             sched.load_conf('foo', 'far', 'baz')
 
 
+def test_build_absolute_time_event():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 17)
+    sched.devices = {'MstrBedroomLight': 'A1'}
+    sched.rules['Tue'] = [[[('MstrBedroomLight', 'off', '07:45', 0)]]]
+    sched.build()
+    expected = 'timer smtwtfs 12/17-12/24 07:45 23:59 MstrBedroomLightOff null'
+    assert sched.timers[0] == expected
+
+
 def test_write_macros():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}

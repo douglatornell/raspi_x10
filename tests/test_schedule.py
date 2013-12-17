@@ -165,6 +165,15 @@ def test_handle_absolute_time_event_adds_timer():
     assert expected in sched.timers
 
 
+def test_handle_absolute_time_event_returns_start_time():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 17)
+    sched.devices = {'MstrBedroomLight': 'A1'}
+    event = ('MstrBedroomLight', 'off', '07:45', 0)
+    start_time = sched._handle_absolute_time_event(event)
+    assert start_time == datetime.datetime(2013, 12, 17, 7, 45)
+
+
 def test_handle_absolute_time_event_conditional_time():
     sched = _make_one()
     sched.today = datetime.datetime(2013, 12, 15)

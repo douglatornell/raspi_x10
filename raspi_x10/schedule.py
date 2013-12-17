@@ -120,6 +120,7 @@ class Schedule():
             start_time, sun_condition = self._handle_conditional_time(
                 time, fuzz)
         self._add_timer(device, state, start_time, sun_condition)
+        return start_time
 
     def _handle_conditional_time(self, time_condition, fuzz):
         time, offset, sun_condition = time_condition

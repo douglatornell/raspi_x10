@@ -63,6 +63,22 @@ def test_build_absolute_time_event():
     assert sched.timers[0] == expected
 
 
+def test_build_relative_time_event():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 20)
+    sched.devices = {
+        'MstrBedroomLight': 'A1',
+        'Radio': 'A2',
+    }
+    sched.rules['Fri'] = [[[
+        ('MstrBedroomLight', 'off', '07:45', 0),
+        ("Radio", "off", 4, 0),
+    ]]]
+    sched.build()
+    expected = 'timer smtwtfs 12/20-12/27 07:49 23:59 RadioOff null'
+    assert sched.timers[1] == expected
+
+
 def test_write_macros():
     sched = _make_one()
     sched.devices = {'foo': 'A1'}
@@ -210,6 +226,26 @@ def test_handle_conditional_time_specific_time():
         ('06:30', 0, 'dawngt 05:45'), 0)
     expected = (datetime.datetime(2013, 12, 16, 6, 30), 'dawngt 05:45')
     assert (start_time, sun_condition) == expected
+
+
+def test_handle_relative_time_event_adds_macro():
+    sched = _make_one()
+    sched.devices = {'Radio': 'A1'}
+    event = ("Radio", "off", 4, 0)
+    absolute_time = datetime.datetime(2013, 12, 17, 16, 23)
+    sched._handle_relative_time_event(event, absolute_time)
+    assert 'macro RadioOff off A1' in sched.macros
+
+
+def test_handle_relative_time_event_adds_timer():
+    sched = _make_one()
+    sched.today = datetime.datetime(2013, 12, 17)
+    sched.devices = {'Radio': 'A1'}
+    event = ("Radio", "off", 4, 0)
+    absolute_time = datetime.datetime(2013, 12, 17, 16, 23)
+    sched._handle_relative_time_event(event, absolute_time)
+    expected = 'timer smtwtfs 12/17-12/24 16:27 23:59 RadioOff null'
+    assert sched.timers[0] == expected
 
 
 def test_add_macro():

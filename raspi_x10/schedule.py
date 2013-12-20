@@ -92,8 +92,7 @@ class Schedule():
         for group in self._rules_group:
             absolute_time = self._handle_absolute_time_event(group[0])
             for event in group[1:]:
-                # handle relative time events
-                pass
+                self._handle_relative_time_event(event, absolute_time)
 
     def write(self):
         """Write the Heyu schedule file.
@@ -143,6 +142,13 @@ class Schedule():
             parts = list(map(int, time.split(':')))
             start_time = self._calc_fuzzy_time(fuzz, *parts, offset=offset)
         return start_time, sun_condition
+
+    def _handle_relative_time_event(self, event, absolute_time):
+        device, state, offset, fuzz = event
+        self._add_macro(device, state)
+        start_time = self._calc_fuzzy_time(
+            fuzz, absolute_time.hour, absolute_time.minute, offset)
+        self._add_timer(device, state, start_time)
 
     def _add_macro(self, device, state):
         macro_name = device + state.capitalize()

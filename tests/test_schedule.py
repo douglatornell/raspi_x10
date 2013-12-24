@@ -22,39 +22,32 @@ except ImportError:     # pragma: no cover; reqd for Python < 3.3
     import mock         # pragma: no cover; reqd for Python < 3.3
 
 
-def _get_one():
-    from raspi_x10.schedule import Schedule
-    return Schedule
+@pytest.fixture
+def sched():
+    import raspi_x10.schedule
+    return raspi_x10.schedule.Schedule()
 
 
-def _make_one():
-    return _get_one()()
-
-
-def test_load_conf_bad_filepath():
-    sched = _make_one()
+def test_load_conf_bad_filepath(sched):
     with pytest.raises(IOError):
         sched.load_conf('foo', 'bar', 'baz')
 
 
-def test_load_conf():
-    sched = _make_one()
+def test_load_conf(sched):
     mock_conf_file = mock.mock_open(read_data='bar = 42')
     with mock.patch('raspi_x10.schedule.open', mock_conf_file, create=True):
         sched.load_conf('foo', 'bar', 'baz')
     assert sched.baz == 42
 
 
-def test_load_conf_bad_conf_var_name():
-    sched = _make_one()
+def test_load_conf_bad_conf_var_name(sched):
     mock_conf = mock.mock_open(read_data='bar = 42')
     with pytest.raises(KeyError):
         with mock.patch('raspi_x10.schedule.open', mock_conf, create=True):
             sched.load_conf('foo', 'far', 'baz')
 
 
-def test_build_absolute_time_event():
-    sched = _make_one()
+def test_build_absolute_time_event(sched):
     sched.today = datetime.datetime(2013, 12, 17)
     sched.devices = {'MstrBedroomLight': 'A1'}
     sched.rules['Tue'] = [[[('MstrBedroomLight', 'off', '07:45', 0)]]]
@@ -63,8 +56,7 @@ def test_build_absolute_time_event():
     assert sched.timers[0] == expected
 
 
-def test_build_relative_time_event():
-    sched = _make_one()
+def test_build_relative_time_event(sched):
     sched.today = datetime.datetime(2013, 12, 20)
     sched.devices = {
         'MstrBedroomLight': 'A1',
@@ -79,8 +71,7 @@ def test_build_relative_time_event():
     assert sched.timers[1] == expected
 
 
-def test_write_macros():
-    sched = _make_one()
+def test_write_macros(sched):
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     sched._add_macro('foo', 'off')
@@ -98,8 +89,7 @@ def test_write_macros():
         assert line in args[0]
 
 
-def test_write_timers():
-    sched = _make_one()
+def test_write_timers(sched):
     sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
@@ -118,62 +108,54 @@ def test_write_timers():
     assert args[0] == expected
 
 
-def test_is_special_day_no_special_days():
-    sched = _make_one()
+def test_is_special_day_no_special_days(sched):
     day = sched._is_special_day()
     assert day is None
 
 
-def test_is_special_day_year_day_not_today():
-    sched = _make_one()
+def test_is_special_day_year_day_not_today(sched):
     sched.today = datetime.date(2013, 12, 15)
     sched.special_days = {'EasterSunday': ['2014-04-20']}
     day = sched._is_special_day()
     assert day is None
 
 
-def test_is_special_day_annual_day_not_today():
-    sched = _make_one()
+def test_is_special_day_annual_day_not_today(sched):
     sched.today = datetime.date(2013, 12, 15)
     sched.special_days = {'NewYears': ['01-01']}
     day = sched._is_special_day()
     assert day is None
 
 
-def test_is_special_day_today():
-    sched = _make_one()
+def test_is_special_day_today(sched):
     sched.today = datetime.date(2014, 1, 1)
     sched.special_days = {'NewYears': ['01-01']}
     day = sched._is_special_day()
     assert day == 'NewYears'
 
 
-def test_choose_rules_group_day_None():
-    sched = _make_one()
+def test_choose_rules_group_day_None(sched):
     sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
     sched.rules['Sun'] = [['foo']]
     sched._choose_rules_group(None)
     assert sched._rules_group == ['foo']
 
 
-def test_choose_rules_group_special_day_not_in_rules():
-    sched = _make_one()
+def test_choose_rules_group_special_day_not_in_rules(sched):
     sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
     sched.rules['Sun'] = [['foo']]
     sched._choose_rules_group('NewYears')
     assert sched._rules_group == ['foo']
 
 
-def test_choose_rules_group_special_day_in_rules():
-    sched = _make_one()
+def test_choose_rules_group_special_day_in_rules(sched):
     sched.today = mock.Mock(weekday=mock.Mock(return_value=6))
     sched.rules['NewYears'] = [['foo']]
     sched._choose_rules_group('NewYears')
     assert sched._rules_group == ['foo']
 
 
-def test_handle_absolute_time_event_adds_macro():
-    sched = _make_one()
+def test_handle_absolute_time_event_adds_macro(sched):
     sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'MstrBedroomLight': 'A1'}
     event = ('MstrBedroomLight', 'off', '07:45', 10)
@@ -181,8 +163,7 @@ def test_handle_absolute_time_event_adds_macro():
     assert 'macro MstrBedroomLightOff off A1' in sched.macros
 
 
-def test_handle_absolute_time_event_adds_timer():
-    sched = _make_one()
+def test_handle_absolute_time_event_adds_timer(sched):
     sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'MstrBedroomLight': 'A1'}
     event = ('MstrBedroomLight', 'off', '07:45', 0)
@@ -191,8 +172,7 @@ def test_handle_absolute_time_event_adds_timer():
     assert expected in sched.timers
 
 
-def test_handle_absolute_time_event_returns_start_time():
-    sched = _make_one()
+def test_handle_absolute_time_event_returns_start_time(sched):
     sched.today = datetime.datetime(2013, 12, 17)
     sched.devices = {'MstrBedroomLight': 'A1'}
     event = ('MstrBedroomLight', 'off', '07:45', 0)
@@ -200,8 +180,7 @@ def test_handle_absolute_time_event_returns_start_time():
     assert start_time == datetime.datetime(2013, 12, 17, 7, 45)
 
 
-def test_handle_absolute_time_event_conditional_time():
-    sched = _make_one()
+def test_handle_absolute_time_event_conditional_time(sched):
     sched.today = datetime.datetime(2013, 12, 15)
     sched.devices = {'UpperHallLight': 'A1'}
     sched._handle_conditional_time = mock.Mock(
@@ -212,15 +191,13 @@ def test_handle_absolute_time_event_conditional_time():
         ('dawn', 60, 'dawngt 05:45'), 10)
 
 
-def test_handle_conditional_time_dawn():
-    sched = _make_one()
+def test_handle_conditional_time_dawn(sched):
     start_time, sun_condition = sched._handle_conditional_time(
         ('dawn', 60, 'dawngt 05:45'), 0)
     assert (start_time, sun_condition) == (('dawn', 60), 'dawngt 05:45')
 
 
-def test_handle_conditional_time_specific_time():
-    sched = _make_one()
+def test_handle_conditional_time_specific_time(sched):
     sched.today = datetime.datetime(2013, 12, 16)
     start_time, sun_condition = sched._handle_conditional_time(
         ('06:30', 0, 'dawngt 05:45'), 0)
@@ -228,8 +205,7 @@ def test_handle_conditional_time_specific_time():
     assert (start_time, sun_condition) == expected
 
 
-def test_handle_relative_time_event_adds_macro():
-    sched = _make_one()
+def test_handle_relative_time_event_adds_macro(sched):
     sched.devices = {'Radio': 'A1'}
     event = ("Radio", "off", 4, 0)
     absolute_time = datetime.datetime(2013, 12, 17, 16, 23)
@@ -237,8 +213,7 @@ def test_handle_relative_time_event_adds_macro():
     assert 'macro RadioOff off A1' in sched.macros
 
 
-def test_handle_relative_time_event_adds_timer():
-    sched = _make_one()
+def test_handle_relative_time_event_adds_timer(sched):
     sched.today = datetime.datetime(2013, 12, 17)
     sched.devices = {'Radio': 'A1'}
     event = ("Radio", "off", 4, 0)
@@ -248,23 +223,20 @@ def test_handle_relative_time_event_adds_timer():
     assert sched.timers[0] == expected
 
 
-def test_add_macro():
-    sched = _make_one()
+def test_add_macro(sched):
     sched.devices = {'foo': 'A1'}
     sched.devices = {'foo': 'A1'}
     sched._add_macro('foo', 'on')
     assert 'macro fooOn on A1' in sched.macros
 
 
-def test_calc_fuzzy_time_no_fuzz():
-    sched = _make_one()
+def test_calc_fuzzy_time_no_fuzz(sched):
     sched.today = datetime.datetime(2013, 12, 15)
     fuzzy_time = sched._calc_fuzzy_time(0, 20, 38)
     assert fuzzy_time == datetime.datetime(2013, 12, 15, 20, 38)
 
 
-def test_calc_fuzzy_time():
-    sched = _make_one()
+def test_calc_fuzzy_time(sched):
     sched.today = datetime.datetime(2013, 12, 15)
     fuzzy_time = sched._calc_fuzzy_time(5, 20, 0)
     expected = (
@@ -275,15 +247,13 @@ def test_calc_fuzzy_time():
     assert expected
 
 
-def test_calc_fuzzy_time_with_offset():
-    sched = _make_one()
+def test_calc_fuzzy_time_with_offset(sched):
     sched.today = datetime.datetime(2013, 12, 16)
     fuzzy_time = sched._calc_fuzzy_time(0, 8, 52, offset=15)
     assert fuzzy_time == datetime.datetime(2013, 12, 16, 9, 7)
 
 
-def test_add_timer_absolute_start_time():
-    sched = _make_one()
+def test_add_timer_absolute_start_time(sched):
     sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
@@ -291,8 +261,7 @@ def test_add_timer_absolute_start_time():
     assert 'timer smtwtfs 12/08-12/15 20:01 23:59 fooOn null' in sched.timers
 
 
-def test_add_timer_sun_condition():
-    sched = _make_one()
+def test_add_timer_sun_condition(sched):
     sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = datetime.datetime(2013, 12, 8, 20, 1, 0)
@@ -301,8 +270,7 @@ def test_add_timer_sun_condition():
     assert expected in sched.timers
 
 
-def test_add_timer_start_time_after_dawn():
-    sched = _make_one()
+def test_add_timer_start_time_after_dawn(sched):
     sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dawn', 42)
@@ -310,8 +278,7 @@ def test_add_timer_start_time_after_dawn():
     assert 'timer smtwtfs 12/08-12/15 dawn+42 23:59 fooOn null' in sched.timers
 
 
-def test_add_timer_start_time_before_dusk():
-    sched = _make_one()
+def test_add_timer_start_time_before_dusk(sched):
     sched.today = datetime.datetime(2013, 12, 8)
     sched.devices = {'foo': 'A1'}
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)

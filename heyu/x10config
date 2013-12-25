@@ -17,13 +17,40 @@ HOUSECODE  H
 # string (no embedded blanks), but is limited to one housecode.
 #
 # Downstairs:
-## ALIAS Radio             H1 StdAM  # no module
-## ALIAS LivingroomLight   H2 StdWS  # no module
+ALIAS Radio             H1 StdAM  # no module
+ALIAS LivingroomLight   H2 StdWS  # no module
 ALIAS KitchenCtrLight   H3 StdAM
 # Upstairs
-## ALIAS FoyerLight        H4 StdWS  # failed module
+ALIAS FoyerLight        H4 StdWS  # failed module
 ALIAS UpperHallLight    H5 StdWS
 ALIAS MstrBedroomLight  H6 StdWS
-## ALIAS TVSet             H7 StdAM  # no module
+ALIAS TVSet             H7 StdAM  # no module
 # Control buttons
-## ALIAS AwayMode          H16 REMOTE2  # failed module
+ALIAS AwayMode          H16 REMOTE2  # failed module
+
+
+# Schedule management:
+#
+# Use HEYU mode to configure schedule to begin on today's date
+# and remain valid for PROGRAM_DAYS
+MODE  HEYU
+PROGRAM_DAYS  366
+# Combine events having the same date range, time, etc.,
+# by concatenating the macros for similar events
+COMBINE_EVENTS  YES
+# Don't allow heyu to compress uploaded macros by combining unit codes
+# for the same housecode and command and eliminating duplicates
+COMPRESS_MACROS  NO
+# Longitude and latitude for dawn/dusk calculations.
+LONGITUDE  W123:07  # [degrees:minutes East or West of Greenwich]
+LATITUDE   N49:16   # [degrees:minutes North or South of equator]
+# For dawn/dusk related times, Heyu breaks up the schedule date intervals
+# into subintervals, each with a constant value of dawn or dusk time.
+# These directives instruct Heyu what value of dawn/dusk time to use.
+# The default value is FIRST, i.e., that on the first day of the subinterval,
+# which is most convenient for comparing Heyu's computations with actual.
+DAWN_OPTION  FIRST
+
+# Write some additional files when the command 'heyu upload check'
+# is executed.
+WRITE_CHECK_FILES  YES

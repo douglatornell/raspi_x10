@@ -181,20 +181,39 @@ class Schedule():
         self.timers.append(timer)
 
 
-if __name__ == '__main__':
-    devices_file, rules_file, special_days_file = sys.argv[1:]
-    sched = Schedule()
+class Usage(Exception):    # pragma: no cover
+    def __init__(self, msg=''):
+        self.msg = msg
+        command = 'python -m raspi_x10.schedule'
+        args = 'devices_file rules_file special_days_file'
+        self.usage = (
+            'usage: {command} {args}'.format(command=command, args=args))
+
+
+def main(argv=[__name__]):
+    """Raspi_x10 command line interface.
+    """
     try:
-        sched.load_conf(devices_file, 'x10_devices', 'devices')
-        sched.load_conf(rules_file, 'x10_rules', 'rules')
-        sched.load_conf(special_days_file, 'special_days', 'special_days')
-    except (IOError, KeyError):
-        sys.exit(2)
-    sched.build()
-    import pprint
-    pprint.pprint(sched.devices)
-    pprint.pprint(sched.rules)
-    pprint.pprint(sched.special_days)
-    pprint.pprint(sched._rules_group)
-    pprint.pprint(sched.macros)
-    pprint.pprint(sched.timers)
+        try:
+            devices_file, rules_file, special_days_file = argv[1:]
+        except ValueError:
+            raise Usage('Wrong number of arguments')
+        sched = Schedule()
+        try:
+            sched.load_conf(devices_file, 'x10_devices', 'devices')
+            sched.load_conf(rules_file, 'x10_rules', 'rules')
+            sched.load_conf(special_days_file, 'special_days', 'special_days')
+        except IOError:
+            raise Usage
+        except KeyError as err:
+            raise Usage('KeyError: {0}'.format(err))
+        sched.build()
+        sched.write()
+        return 0
+    except Usage as err:
+        log.error('{0.msg}\n{0.usage}'.format(err))
+        return 2
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv))    # pragma: no cover

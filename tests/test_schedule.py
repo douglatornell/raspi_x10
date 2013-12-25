@@ -28,6 +28,12 @@ def sched():
     return raspi_x10.schedule.Schedule()
 
 
+@pytest.fixture
+def main():
+    import raspi_x10.schedule
+    return raspi_x10.schedule.main
+
+
 def test_load_conf_bad_filepath(sched):
     with pytest.raises(IOError):
         sched.load_conf('foo', 'bar', 'baz')
@@ -284,3 +290,50 @@ def test_add_timer_start_time_before_dusk(sched):
     start_time = (datetime.datetime(2013, 12, 8, 20, 1, 0), 'dusk', -42)
     sched._add_timer('foo', 'on', start_time)
     assert 'timer smtwtfs 12/08-12/15 dusk-42 23:59 fooOn null' in sched.timers
+
+
+def test_main_wrong_number_of_args_return_code_2(main):
+    return_code = main()
+    assert return_code == 2
+
+
+@mock.patch('raspi_x10.schedule.log')
+def test_main_wrong_number_of_args_msg(mock_log, main):
+    main()
+    assert 'Wrong number of arguments' in mock_log.error.call_args[0][0]
+
+
+def test_main_bad_config_file_return_code_2(main):
+    return_code = main(['raspi_x10.schedule', 'foo', 'bar', 'baz'])
+    assert return_code == 2
+
+
+@mock.patch('raspi_x10.schedule.Schedule')
+def test_main_load_config(mock_sched, main):
+    main(['raspi_x10.schedule', 'foo', 'bar', 'baz'])
+    expected = [
+        mock.call('foo', 'x10_devices', 'devices'),
+        mock.call('bar', 'x10_rules', 'rules'),
+        mock.call('baz', 'special_days', 'special_days'),
+    ]
+    assert mock_sched().load_conf.call_args_list == expected
+
+
+@mock.patch('raspi_x10.schedule.Schedule')
+@mock.patch('raspi_x10.schedule.log')
+def test_main_bad_config_key(mock_log, mock_sched, main):
+    mock_sched().load_conf.side_effect = KeyError('foobar')
+    main(['raspi_x10.schedule', 'foo', 'bar', 'baz'])
+    assert "KeyError: 'foobar'" in mock_log.error.call_args[0][0]
+
+
+@mock.patch('raspi_x10.schedule.Schedule')
+def test_main_build_schedule(mock_sched, main):
+    main(['raspi_x10.schedule', 'foo', 'bar', 'baz'])
+    assert mock_sched().build.called
+
+
+@mock.patch('raspi_x10.schedule.Schedule')
+def test_main_write_schedule(mock_sched, main):
+    main(['raspi_x10.schedule', 'foo', 'bar', 'baz'])
+    assert mock_sched().write.called

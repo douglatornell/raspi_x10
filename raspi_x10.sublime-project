@@ -1,18 +1,22 @@
 {
+	"build_systems":
+	[
+		{
+			"name": "pytest",
+			"selector": "source.python",
+			"shell_cmd": "~/.virtualenvs/raspi_x10/bin/py.test",
+			"working_dir": "/Users/doug/Documents/devel/raspi_x10"
+		}
+	],
 	"folders":
 	[
 		{
 			"follow_symlinks": true,
-			"path": "/Users/doug/Documents/devel/raspi_x10"
+			"path": "."
+		},
+		{
+			"follow_symlinks": true,
+			"path": "/Users/doug/Documents/devel/raspi_x10_config"
 		}
-	],
-    "build_systems":
-    [
-        {
-            "name": "pytest",
-            "working_dir": "/Users/doug/Documents/devel/raspi_x10",
-            "shell_cmd": "~/.virtualenvs/raspi_x10/bin/py.test",
-            "selector": "source.python"
-        }
-    ]
+	]
 }

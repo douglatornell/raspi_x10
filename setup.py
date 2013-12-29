@@ -37,6 +37,8 @@ with open('README.rst', 'rt') as f:
     long_description = f.read()
 install_requires = [
     # see requirements.txt for versions most recently used in development
+    'pyramid==1.5a3',
+    'pyramid_mako',
 ]
 tests_require = [
     'coverage',

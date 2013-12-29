@@ -35,15 +35,15 @@
       <div class="row bottom-margin">
         <div class="col-xs-6 col-xs-offset-3 col-md-4 col-md-offset-0">
           <div class="btn-group-vertical">
-            <button type="button" class="btn btn-info active">People Home</button>
-            <button type="button" class="btn btn-default">Away Mode</button>
+            <button type="button" id="people-home" class="btn btn-info away-mode">People Home</button>
+            <button type="button" id="away-mode" class="btn btn-default away-mode">Away Mode</button>
           </div>
         </div>
       </div>
       <div class="row" style="margin-bottom: 15px">
         <div class="col-xs-6 col-xs-offset-3 col-md-4 col-md-offset-0">
           <div class="btn-group-vertical">
-            <button type="button" class="btn btn-warning">Update Status</button>
+            <button type="button" id="refresh-status" class="btn btn-warning">Refresh Status</button>
           </div>
         </div>
       </div>
@@ -51,5 +51,6 @@
 
     <script src="//code.jquery.com/jquery.js"></script>
     <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>
+    <script src="/static/web_remote.js"></script>
   </body>
 </html>

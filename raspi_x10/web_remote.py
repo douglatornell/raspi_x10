@@ -23,9 +23,11 @@ import pyramid.view
 
 
 logging.basicConfig()
-log = logging.getLogger(__file__)
+log = logging.getLogger('web_remote')
 
 here = os.path.dirname(os.path.abspath(__file__))
+
+away_mode = False
 
 
 @pyramid.view.view_config(route_name='home', renderer='home.mako')
@@ -34,12 +36,34 @@ def home_view(request):
     return context
 
 
+@pyramid.view.view_config(route_name='away_mode', renderer='json')
+def away_mode_view(request):
+    return {'AwayMode': toggle_away_mode()}
+
+
+@pyramid.view.view_config(route_name='status', renderer='json')
+def status_view(request):
+    return get_status()
+
+
+def toggle_away_mode():
+    global away_mode
+    away_mode = not away_mode
+    return away_mode
+
+
+def get_status():
+    return {'AwayMode': away_mode}
+
+
 def main(argv=[__name__]):
-    if argv[1] == 'debug':
+    debug = 'debug' in argv
+    if debug:
         settings = {
-            'reload_all': True,
             'debug_all': True,
         }
+        log.setLevel(logging.DEBUG)
+        log.debug('debugging enabled')
     else:
         settings = {}
     settings['mako.directories'] = os.path.join(here, 'templates')
@@ -47,6 +71,8 @@ def main(argv=[__name__]):
     config.include('pyramid_mako')
     config.add_static_view('static', os.path.join(here, 'static'))
     config.add_route('home', '/')
+    config.add_route('away_mode', '/away_mode')
+    config.add_route('status', '/status')
     config.scan()
     app = config.make_wsgi_app()
     server = wsgiref.simple_server.make_server('0.0.0.0', 6543, app)

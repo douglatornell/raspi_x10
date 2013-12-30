@@ -15,6 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import subprocess
 import sys
 import os
 import wsgiref.simple_server
@@ -53,7 +54,9 @@ def toggle_away_mode():
 
 
 def get_status():
-    return {'AwayMode': away_mode}
+    cmd = 'heyu onstate AwayMode'.split()
+    away_mode = subprocess.check_output(cmd, universal_newlines=True).strip()
+    return {'AwayMode': away_mode != '0'}
 
 
 def main(argv=[__name__]):

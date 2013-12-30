@@ -28,7 +28,10 @@ log = logging.getLogger('web_remote')
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-away_mode = False
+heyu_state_toggle_cmd = {
+    True: 'off',
+    False: 'on',
+}
 
 
 @pyramid.view.view_config(route_name='home', renderer='home.mako')
@@ -44,18 +47,21 @@ def away_mode_view(request):
 
 @pyramid.view.view_config(route_name='status', renderer='json')
 def status_view(request):
-    return get_status()
+    return get_state()
 
 
 def toggle_away_mode():
-    global away_mode
-    away_mode = not away_mode
-    return away_mode
+    state = get_state()
+    cmd = 'heyu {} AwayMode'.format(heyu_state_toggle_cmd[state['AwayMode']])
+    subprocess.check_call(cmd.split())
+    state['AwayMode'] = not state['AwayMode']
+    return state['AwayMode']
 
 
-def get_status():
-    cmd = 'heyu onstate AwayMode'.split()
-    away_mode = subprocess.check_output(cmd, universal_newlines=True).strip()
+def get_state():
+    cmd = 'heyu onstate AwayMode'
+    away_mode = subprocess.check_output(
+        cmd.split(), universal_newlines=True).strip()
     return {'AwayMode': away_mode != '0'}
 
 

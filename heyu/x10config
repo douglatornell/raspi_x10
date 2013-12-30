@@ -5,6 +5,9 @@
 # Serial port to which the CM11A is connected
 TTY  /dev/ttyUSB0
 
+# Start the state engine when the relay process is started
+START_ENGINE  AUTO
+
 # Base housecode
 HOUSECODE  H
 

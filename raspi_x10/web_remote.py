@@ -21,6 +21,7 @@ import os
 import wsgiref.simple_server
 import pyramid.config
 import pyramid.view
+import raspi_x10.schedule
 
 
 logging.basicConfig()
@@ -31,6 +32,10 @@ here = os.path.dirname(os.path.abspath(__file__))
 heyu_state_toggle_cmd = {
     True: 'off',
     False: 'on',
+}
+away_mode_state_rules = {
+    True: 'away_mode_rules.py',
+    False: 'people_home_rules.py',
 }
 
 
@@ -55,6 +60,18 @@ def toggle_away_mode():
     cmd = 'heyu {} AwayMode'.format(heyu_state_toggle_cmd[state['AwayMode']])
     subprocess.check_call(cmd.split())
     state['AwayMode'] = not state['AwayMode']
+    rules = away_mode_state_rules[state['AwayMode']]
+    args = [
+        'schedule',
+        'heyu/x10_devices.py',
+        'heyu/{}'.format(rules),
+        'heyu/special_days.py',
+    ]
+    raspi_x10.schedule.main(args)
+    cmd = 'heyu upload'
+    subprocess.check_call(cmd.split())
+    cmd = 'heyu catchup'
+    subprocess.check_call(cmd.split())
     return state['AwayMode']
 
 

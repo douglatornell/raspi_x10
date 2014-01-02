@@ -60,4 +60,8 @@ setup(
     packages=['raspi_x10'],
     install_requires=install_requires,
     tests_require=tests_require,
+    entry_points="""\
+    [paste.app_factory]
+    web_remote = raspi_x10.web_remote:main
+    """,
 )

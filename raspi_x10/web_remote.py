@@ -16,16 +16,14 @@ limitations under the License.
 """
 import logging
 import subprocess
-import sys
 import os
-import wsgiref.simple_server
 import pyramid.config
 import pyramid.view
 import raspi_x10.schedule
 
 
 logging.basicConfig()
-log = logging.getLogger('web_remote')
+log = logging.getLogger(__name__)
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -82,28 +80,12 @@ def get_state():
     return {'AwayMode': away_mode != '0'}
 
 
-def main(argv=[__name__]):
-    debug = 'debug' in argv
-    if debug:
-        settings = {
-            'debug_all': True,
-        }
-        log.setLevel(logging.DEBUG)
-        log.debug('debugging enabled')
-    else:
-        settings = {}
-    settings['mako.directories'] = os.path.join(here, 'templates')
+def main(global_config, **settings):
     config = pyramid.config.Configurator(settings=settings)
-    config.include('pyramid_mako')
     config.add_static_view('static', os.path.join(here, 'static'))
     config.add_route('home', '/')
     config.add_route('away_mode', '/away_mode')
     config.add_route('status', '/status')
     config.scan()
     app = config.make_wsgi_app()
-    server = wsgiref.simple_server.make_server('0.0.0.0', 6543, app)
-    server.serve_forever()
-
-
-if __name__ == '__main__':
-    sys.exit(main(sys.argv))    # pragma: no cover
+    return app

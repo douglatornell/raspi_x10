@@ -2,7 +2,7 @@
 
 -e hg+ssh://hg@bitbucket.org/douglatornell/raspi_x10#egg=raspi_x10-dev
 
-Mako==0.9.1
+Mako==1.2.2
 MarkupSafe==0.18
 PasteDeploy==1.5.2
 WebOb==1.3.1

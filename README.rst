@@ -2,6 +2,9 @@
 Raspberry Pi X10 Home Automation
 ********************************
 
+**This repository has been archived because X10 home automation is very outdated.**
+Please contact @DougLatornell if you see a need for this repository to be re-activated.
+
 X10_ home automation based on a `Raspberry Pi`_, heyu_, a `CM11A module`_
 and some `Python 3`_ code.
 
